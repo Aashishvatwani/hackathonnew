@@ -1,104 +1,73 @@
-import { useState } from "react";
-import { FaBars, FaTimes, FaSignOutAlt, FaUser, FaEnvelope, FaCalendarAlt } from "react-icons/fa";
-import SideBar from "../DashBoard/SideBar";
-import TopBar1 from "../DashBoard/TopBar1";
+import React from "react";
+import { getAuth, signOut } from "firebase/auth";
+import { useNavigate } from "react-router-dom";
+import { motion } from "framer-motion";
+import { FaUserCircle, FaEnvelope, FaIdBadge, FaSignOutAlt } from "react-icons/fa";
 
-const Settings = () => {
-  const [isSidebarOpen, setSidebarOpen] = useState(true);
-  const [user] = useState({
-    username: "JohnDoe",
-    email: "john.doe@example.com",
-    memberSince: "2023-10-27",
-  });
+const Logout = () => {
+  const auth = getAuth();
+  const navigate = useNavigate();
+  const user = auth.currentUser;
 
-  const toggleSidebar = () => {
-    setSidebarOpen(!isSidebarOpen);
-  };
-
-  const handleLogout = () => {
-    // Implement your logout logic here
-    console.log("Logout clicked");
-    // Redirect to login page or clear session, etc.
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      navigate("/login");
+    } catch (err) {
+      console.error("Logout error:", err);
+    }
   };
 
   return (
-    <div className="flex h-screen bg-black text-white">
-      {/* Sidebar */}
-      <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-
-      {/* Main Content */}
-      <div
-        className={`flex flex-col flex-1 min-h-screen transition-all duration-300 ${
-          isSidebarOpen ? "ml-64" : "ml-16"
-        }`}
+    <motion.div
+      initial={{ opacity: 0, scale: 0.95 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.6, ease: "easeOut" }}
+      className="min-h-screen bg-gradient-to-br from-gray-900 via-black to-gray-800 text-white flex items-center justify-center p-4"
+    >
+      <motion.div
+        initial={{ y: 50, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.7, delay: 0.3 }}
+        className="bg-gray-900 border border-purple-700 rounded-2xl p-6 w-full max-w-md shadow-2xl backdrop-blur-lg bg-opacity-80"
       >
-        {/* Top Bar */}
-        <div className="relative">
-          <TopBar1/>
-          {/* Sidebar Toggle Button */}
-          <button
-            className="absolute left-4 top-4 text-white bg-gray-800 p-2 rounded-md md:hidden"
-            onClick={toggleSidebar}
-          >
-            {isSidebarOpen ? <FaTimes size={20} /> : <FaBars size={20} />}
-          </button>
+        <div className="flex flex-col items-center text-center">
+          <FaUserCircle className="text-purple-500 text-6xl mb-3 animate-pulse" />
+          <h2 className="text-2xl font-bold mb-1">Welcome Back</h2>
+          <p className="text-sm text-gray-400 mb-6">You are signed in securely 🚀</p>
         </div>
 
-        {/* Main Content Area */}
-        <main className="flex-1 p-6 mt-14 overflow-auto space-y-6">
-          {/* Settings Content */}
-          <div className="container mx-auto max-w-2xl">
-            <h2 className="text-4xl font-bold mb-8 text-purple-400 border-b-2 border-purple-600 pb-4">
-              <FaUser className="inline-block mr-2" /> User Settings
-            </h2>
-
-            <div className="mb-6">
-              <div className="flex items-center mb-2">
-                <FaUser className="mr-4 text-gray-400" />
-                <label className="block text-lg font-semibold mr-2">
-                  Username:
-                </label>
-              </div>
-              <p className="bg-gray-800 rounded-md p-3">
-                {user.username}
-              </p>
+        {user ? (
+          <div className="space-y-3 text-left">
+            <div className="flex items-center gap-3">
+              <FaUserCircle className="text-purple-400" />
+              <span className="text-sm truncate">{user.displayName || "Unknown User"}</span>
             </div>
-
-            <div className="mb-6">
-              <div className="flex items-center mb-2">
-                <FaEnvelope className="mr-4 text-gray-400" />
-                <label className="block text-lg font-semibold mr-2">
-                  Email:
-                </label>
-              </div>
-              <p className="bg-gray-800 rounded-md p-3">
-                {user.email}
-              </p>
+            <div className="flex items-center gap-3">
+              <FaEnvelope className="text-purple-400" />
+              <span className="text-sm break-all">{user.email}</span>
             </div>
-
-            <div className="mb-6">
-              <div className="flex items-center mb-2">
-                <FaCalendarAlt className="mr-4 text-gray-400" />
-                <label className="block text-lg font-semibold mr-2">
-                  Member Since:
-                </label>
-              </div>
-              <p className="bg-gray-800 rounded-md p-3">
-                {user.memberSince}
-              </p>
+            <div className="flex items-center gap-3">
+              <FaIdBadge className="text-purple-400" />
+              <span className="text-xs break-all">{user.uid}</span>
             </div>
-
-            <button
-              className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-6 rounded-md flex items-center"
-              onClick={handleLogout}
-            >
-              <FaSignOutAlt className="mr-2" /> Logout
-            </button>
           </div>
-        </main>
-      </div>
-    </div>
+        ) : (
+          <p className="text-red-500 text-center">No user is logged in.</p>
+        )}
+
+        <motion.button
+          whileTap={{ scale: 0.9 }}
+          whileHover={{ scale: 1.03 }}
+          onClick={handleLogout}
+          className="mt-8 w-full flex items-center justify-center gap-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 transition rounded-lg text-white font-semibold"
+        >
+          <FaSignOutAlt className="text-lg" />
+          Logout
+        </motion.button>
+      </motion.div>
+    </motion.div>
   );
 };
 
-export default Settings;
+export default Logout;

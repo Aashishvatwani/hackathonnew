@@ -19,7 +19,7 @@ const SignupPage = () => {
   const [error, setError] = useState("");
   const [waveData, setWaveData] = useState([]);
   const { currentUser, setCurrentUser } = useAuth();
-
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   // Track window resize
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
