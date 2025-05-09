@@ -49,7 +49,7 @@ const SideBar = ({ isOpen, toggleSidebar }) => {
         <SidebarItem icon={<FaListAlt />} label="Take Exam" isOpen={isOpen} path="/practice-tests" />
         <SidebarItem icon={<FaClipboard />} label="Mock Exams" isOpen={isOpen} path="/mock-exams" />
         <SidebarItem icon={<FaGift />} label="Refer & Rule" isOpen={isOpen} path="/refer-and-rule" />
-        <SidebarItem icon={<FaCog />} label="Host Test" isOpen={isOpen} path="/host-test" />
+       
       </nav>
 
       {/* Footer Links */}

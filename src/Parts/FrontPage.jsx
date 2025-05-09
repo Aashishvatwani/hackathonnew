@@ -131,10 +131,31 @@ const FrontPage = () => {
 
       {/* Navbar */}
       <nav className="navbar fixed top-0 left-0 w-full bg-black bg-opacity-80 p-4 flex justify-center z-10 shadow-md">
-        {['home','pricing','blog','contact'].map(sec=>
-          <a key={sec} href={`#${sec}`} onClick={()=>scrollToSection({home:heroRef,pricing:pricingRef,blog:blogRef,contact:contactRef}[sec])} className={`mx-4 transition-colors duration-300 ${activeSection===sec?'text-violet-400':'hover:text-violet-300'}`}>{sec.charAt(0).toUpperCase()+sec.slice(1)}</a>
-        )}
-      </nav>
+  {['home', 'pricing', 'blog', 'contact'].map(sec => (
+    <a
+      key={sec}
+      href={`#${sec}`}
+      onClick={() =>
+        scrollToSection(
+          { home: heroRef, pricing: pricingRef, blog: blogRef, contact: contactRef }[sec]
+        )
+      }
+      className={`mx-4 transition-colors duration-300 ${
+        activeSection === sec ? 'text-violet-400' : 'hover:text-violet-300'
+      }`}
+    >
+      {sec.charAt(0).toUpperCase() + sec.slice(1)}
+    </a>
+  ))}
+
+  {/* Only this item routes to a different page */}
+  <div
+    onClick={() => navigate('/company-signup')}
+    className="ml-6 px-4 py-2 rounded-md bg-black-600 hover:bg-black-700 text-white transition duration-300"
+  >
+    Company Sign Up
+    </div>
+</nav>
 
       {/* Hero */}
       <section

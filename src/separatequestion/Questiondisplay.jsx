@@ -1,17 +1,15 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { questionsData } from "../questionsdata"; // Assuming your questionsData is imported from here
+import { questionsData } from "../questionsdata";
 import { useNavigate } from 'react-router-dom';
-import { v4 as uuidv4 } from 'uuid'; // Import uuid for generating unique IDs
-import { ref, set, getDatabase } from "firebase/database"; // Firebase Realtime Database methods
-import { useAuth } from '../AuthContext'; // Import AuthContext to get current user
+import { ref, set, getDatabase } from "firebase/database";
+import { useAuth } from '../AuthContext';
 
 const SidebarSelectQuestion = () => {
-  const [panelWidth, setPanelWidth] = useState(300); // Sidebar width
-  const [selectedQuestions, setSelectedQuestions] = useState([]); // State to store selected questions
-  const selected = false;
+  const [panelWidth, setPanelWidth] = useState(300);
+  const [selectedQuestions, setSelectedQuestions] = useState([]);
   const navigate = useNavigate();
-  const { currentUser } = useAuth(); // Get current user from AuthContext
+  const { currentUser } = useAuth();
 
   const handleSolveClick1 = (questionId) => {
     handleSelectQuestion(questionId);
@@ -19,59 +17,51 @@ const SidebarSelectQuestion = () => {
   };
 
   const handleResize = (e) => {
-    const newWidth = Math.max(200, e.clientX); // Minimum width is 200px
+    const newWidth = Math.max(200, e.clientX);
     setPanelWidth(newWidth);
   };
 
   const handleSelectQuestion = (question) => {
     if (!selectedQuestions.some((q) => q.id === question.id)) {
-      setSelectedQuestions((prev) => [...prev, question]); // Add question if not already selected
+      setSelectedQuestions((prev) => [...prev, question]);
     }
   };
 
   const handleRemoveQuestion = (questionId) => {
     setSelectedQuestions((prev) =>
       prev.filter((question) => question.id !== questionId)
-    ); // Remove question from the selected list
+    );
   };
 
   const handleConfirmSelection = () => {
     if (currentUser) {
-      // Add unique ID to each selected question
-      const updatedQuestions = selectedQuestions.map((question) => ({
-        ...question,
-        uniqueId: uuidv4(), // Add unique ID to each question
-      }));
-      setSelectedQuestions(updatedQuestions);
+      if (selectedQuestions.length === 0) {
+        alert("Please select at least one question.");
+        return;
+      }
 
-      // Get a reference to the Realtime Database and store the questions
-      const db = getDatabase();
-      const selectedQuestionsRef = ref(db, `users/${currentUser.uid}/selectedQuestions`);
+      // Generate a 4-character alphanumeric ID
+      const packageId = Math.random().toString(36).substring(2, 6).toUpperCase();
 
-      // Create a unique reference for each selected question
-      updatedQuestions.forEach((question) => {
-        const questionRef = ref(db, `users/${currentUser.uid}/selectedQuestions/${question.uniqueId}`);
-        
-        // Save each selected question to the Realtime Database
-        set(questionRef, {
-          id: question.id,
-          title: question.title,
-          difficulty: question.difficulty,
-          complexity: question.complexity,
-          // Include any other data you want to store
-        })
-          .then(() => {
-            console.log("Question saved to Realtime Database:", question);
-          })
-          .catch((error) => {
-            console.error("Error saving question:", error);
-            alert("Error saving questions!");
-          });
+      // Prepare question data as qid1: 1, qid2: 2, ...
+      const questionData = {};
+      selectedQuestions.forEach((question, index) => {
+        questionData[`qid${index + 1}`] = question.id;
       });
 
-      // Alert and Confirmation
-      console.log("Confirmed Questions with Unique IDs:", updatedQuestions);
-      alert("Questions confirmed and saved to Realtime Database!");
+      const db = getDatabase();
+      const packageRef = ref(db, `companyid/${packageId}`);
+
+      // Save to Firebase
+      set(packageRef, questionData)
+        .then(() => {
+          console.log("Questions saved to Firebase under companyid:", packageId);
+          alert(`Questions saved under Package ID: ${packageId}`);
+        })
+        .catch((error) => {
+          console.error("Error saving questions:", error);
+          alert("Failed to save questions!");
+        });
     } else {
       alert("User not authenticated");
     }
@@ -79,7 +69,7 @@ const SidebarSelectQuestion = () => {
 
   return (
     <div style={{ display: "flex", height: "100vh" }}>
-      {/* Sidebar displaying selected questions */}
+      {/* Sidebar */}
       <motion.div
         initial={{ x: -300 }}
         animate={{ x: 0 }}
@@ -93,7 +83,6 @@ const SidebarSelectQuestion = () => {
         }}
       >
         <h3 className="text-white text-lg font-bold mb-4">Selected Questions</h3>
-
         {selectedQuestions.length > 0 ? (
           selectedQuestions.map((question) => (
             <div
@@ -123,7 +112,7 @@ const SidebarSelectQuestion = () => {
           <p className="text-gray-400">No questions selected.</p>
         )}
 
-        {/* Sidebar resize handle */}
+        {/* Resize handle */}
         <div
           style={{
             position: "absolute",
@@ -144,17 +133,16 @@ const SidebarSelectQuestion = () => {
         ></div>
       </motion.div>
 
-      {/* Main content area displaying all questions */}
+      {/* Main content */}
       <div
         style={{
           flex: 1,
           padding: "1rem",
-          backgroundImage: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)", // Beautiful gradient background
+          backgroundImage: "linear-gradient(135deg, #6a11cb 0%, #2575fc 100%)",
           color: "#fff",
         }}
       >
         <h3 className="text-lg font-semibold text-white mb-4">All Coding Questions</h3>
-
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {questionsData.map((question) => (
             <div
@@ -174,7 +162,7 @@ const SidebarSelectQuestion = () => {
         </div>
       </div>
 
-      {/* Confirm Button at the bottom-right */}
+      {/* Confirm button */}
       <div
         style={{
           position: "absolute",

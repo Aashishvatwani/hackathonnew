@@ -19,6 +19,9 @@ import { QuestionsProvider } from "./context/questionContext";
 import PracticeInstructions from "./pages/PracticeInstructions";
 import SidebarSelectQuestion from "./separatequestion/Questiondisplay";
 import ResizableLayout from "./componenets/Layout/ResizableLayout";
+import CompanyLoginPage from "./company/CompanyLogin";
+import CompanySignupPage from "./company/CompanySignup";
+import CompanyDashboard from "./company/CompanyDashboard";
 
 function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(true);
@@ -28,55 +31,72 @@ function App() {
     setSidebarOpen(!isSidebarOpen);
   };
 
+  // Don't show SideBar or TopBar1 on company-dashboard
+  const isCompanyDashboard = location.pathname === "/company-dashboard";
+
   return (
     <div className="flex h-screen bg-darkBg">
-      <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      {!isCompanyDashboard && (
+        <SideBar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
+      )}
+
       <div
         className={`flex-1 flex flex-col min-h-screen transition-all duration-300 ${
-          location.pathname === "/practice-tests" ? (isSidebarOpen ? "ml-64" : "ml-16") : ""
+          location.pathname === "/practice-tests" && !isCompanyDashboard
+            ? isSidebarOpen
+              ? "ml-64"
+              : "ml-16"
+            : ""
         }`}
       >
-        {location.pathname !== "/practice-tests" && <TopBar1 />}
+        {!isCompanyDashboard && location.pathname !== "/practice-tests" && (
+          <TopBar1 />
+        )}
 
         <QuestionsProvider>
-        <Routes>
-  {/* Public Routes */}
-  <Route path="/" element={<FrontPage />} />
-  <Route
-    path="/signup"
-    element={
-      <ProtectedRoute restricted={true}>
-        <SignupPage />
-      </ProtectedRoute>
-    }
-  />
-  <Route
-    path="/login"
-    element={
-      <ProtectedRoute restricted={true}>
-        <LoginPage />
-      </ProtectedRoute>
-    }
-  />
-  <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+          <Routes>
+            {/* Public Routes */}
+            <Route path="/" element={<FrontPage />} />
+            <Route
+              path="/signup"
+              element={
+                <ProtectedRoute restricted={true}>
+                  <SignupPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/login"
+              element={
+                <ProtectedRoute restricted={true}>
+                  <LoginPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/company-login" element={<CompanyLoginPage />} />
+            <Route path="/company-signup" element={<CompanySignupPage />} />
+            <Route path="/forgot-password" element={<ForgotPasswordPage />} />
 
-  {/* Protected Routes */}
-  <Route element={<ProtectedRoute />}>
-    <Route path="/dashboard" element={<Dashboard />} />
-    <Route path="/practice-tests" element={<PracticeInstructions />} />
-    <Route path="/mock-exams" element={<MockExams />} />
-    <Route path="/refer-and-rule" element={<ReferAndRule />} />
-    <Route path="/how-to-use" element={<HowToUse />} />
-    <Route path="/settings" element={<Settings />} />
-    <Route path="/solve/:id" element={<ResizableLayout />} />
-    <Route path="/host-test" element={<SidebarSelectQuestion/>} />
-  </Route>
-</Routes>
+            {/* Protected Routes */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/practice-tests" element={<PracticeInstructions />} />
+              <Route path="/mock-exams" element={<MockExams />} />
+              <Route path="/refer-and-rule" element={<ReferAndRule />} />
+              <Route path="/how-to-use" element={<HowToUse />} />
+              <Route path="/settings" element={<Settings />} />
+              <Route path="/solve/:id" element={<ResizableLayout />} />
+             
+            </Route>
+            <Route path="/host-test" element={<SidebarSelectQuestion />} />
+            <Route path="/company-dashboard" element={<CompanyDashboard />} />
+          </Routes>
         </QuestionsProvider>
       </div>
     </div>
   );
 }
+
 
 // Wrap App with Router to use useLocation inside
 export default function WrappedApp() {
