@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { questionsData } from "../questionsdata";
+import { questionsData } from "../questionsData";
 import { useQuestions } from "../context/questionContext";
 import { useNavigate } from "react-router-dom";
 

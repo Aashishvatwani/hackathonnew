@@ -10,7 +10,8 @@ const languageMap = {
   cpp: "cpp",
 };
 
-export const runCode = async (code, language) => {
+export const runCode = async (code, language,input) => {
+
   try {
     
     // console.log("Running code:", code);
@@ -19,10 +20,10 @@ export const runCode = async (code, language) => {
     const { data } = await axios.post(
       PISTON_API_URL,
       {
-        language: language_id,
+        language: language,
         version: "*",
         files: [{ content: code }],
-        stdin: "",
+        stdin: input || "", // Use input if provided, otherwise default to empty string
       },
       { // Added headers here
         headers: {

@@ -2,18 +2,16 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { FcGoogle } from "react-icons/fc";
 import { FaGithub } from "react-icons/fa";
-import { useNavigate,useLocation } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import {
-  getAuth,
   signInWithEmailAndPassword,
   GoogleAuthProvider,
   GithubAuthProvider,
   signInWithPopup,
-  sendPasswordResetEmail,
 } from "firebase/auth";
-import { ref, set } from "firebase/database";
+import { ref, set, get } from "firebase/database";
 import { auth, database } from "../firebaseConfig";
-import { useAuth } from '../AuthContext';
+import { useAuth } from "../AuthContext";
 
 const LoginPage = () => {
   const googleProvider = new GoogleAuthProvider();
@@ -24,10 +22,10 @@ const LoginPage = () => {
   const [password, setPassword] = useState("");
   const [waveData, setWaveData] = useState([]);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
-  const { currentUser, setCurrentUser } = useAuth(); // You can now use currentUser
+  const { currentUser } = useAuth();
   const from = location.state?.from?.pathname || "/dashboard";
-  // Track window resize
-  
+
+  // Handle window resize
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
     window.addEventListener("resize", handleResize);
@@ -38,7 +36,7 @@ const LoginPage = () => {
   useEffect(() => {
     const numberOfWaves = 5;
     const initial = Array.from({ length: numberOfWaves }, (_, i) => ({
-      id: i,  
+      id: i,
       amplitude: Math.random() * 20 + 30,
       frequency: Math.random() * 0.02 + 0.01,
       phase: Math.random() * 2 * Math.PI,
@@ -52,42 +50,47 @@ const LoginPage = () => {
   // Animate wave phases
   useEffect(() => {
     const id = setInterval(() => {
-      setWaveData(waves =>
-        waves.map(w => ({ ...w, phase: w.phase + w.speed * 0.02 }))
+      setWaveData((waves) =>
+        waves.map((w) => ({ ...w, phase: w.phase + w.speed * 0.02 }))
       );
     }, 30);
     return () => clearInterval(id);
   }, []);
 
-
-  // Save new user in database
+  // Store new user only if not already present
   const storeUserInDatabase = async (user) => {
     const studentId = user.uid;
     const companyId = "your_company_id";
 
-    await set(ref(database, `${companyId}/${studentId}`), {
-      Name: "",
-      "risk score": "",
-      "total questions": "",
-      "total score": "",
-    });
+    const userRef = ref(database, `${companyId}/${studentId}`);
+    const snapshot = await get(userRef);
 
-    await set(ref(database, `students/${studentId}`), {
-      [studentId]: {
-        finalscore: "",
-        qid: {
-          "question score": "",
-          "risk score": "",
-          "testcases failed": "",
-          "testcases passed": "",
+    if (!snapshot.exists()) {
+      await set(userRef, {
+        Name: "",
+        "risk score": "",
+        "total questions": "",
+        "total score": "",
+      });
+
+      await set(ref(database, `students/${studentId}`), {
+        [studentId]: {
+          finalscore: "",
+          qid: {
+            "question score": "",
+            "risk score": "",
+            "testcases failed": "",
+            "testcases passed": "",
+          },
         },
-      },
-    });
+      });
+    }
   };
 
-  // Handlers
+  // Login Handlers
   const handleEmailPasswordLogin = async () => {
-    if (!email || !password) return alert("Please enter both email and password.");
+    if (!email || !password)
+      return alert("Please enter both email and password.");
     try {
       const { user } = await signInWithEmailAndPassword(auth, email, password);
       await storeUserInDatabase(user);
@@ -95,7 +98,14 @@ const LoginPage = () => {
       navigate("/dashboard");
     } catch (err) {
       console.error(err);
-      alert("Login failed. Please check your credentials.");
+      const errorCode = err.code;
+      if (errorCode === "auth/user-not-found") {
+        alert("User not found. Please sign up.");
+      } else if (errorCode === "auth/wrong-password") {
+        alert("Incorrect password.");
+      } else {
+        alert("Login failed. Please try again.");
+      }
     }
   };
 
@@ -126,6 +136,8 @@ const LoginPage = () => {
   const handleForgotPassword = () => {
     navigate("/forgot-password");
   };
+
+  // Redirect if already logged in
   useEffect(() => {
     if (currentUser && location.pathname === "/login") {
       navigate(from, { replace: true });
@@ -134,19 +146,41 @@ const LoginPage = () => {
 
   return (
     <div className="relative overflow-hidden min-h-screen bg-black">
-      {/* Animated Background Waves */}
+      {/* Animated Waves */}
       <div className="absolute inset-0 pointer-events-none">
-        {waveData.map(wave => {
-          // precompute y-values
+        {waveData.map((wave) => {
           const y0 = 50 + wave.amplitude * Math.sin(wave.phase);
-          const y1 = 50 + wave.amplitude * Math.sin(wave.frequency * (windowWidth * 0.25) + wave.phase);
-          const y2 = 50 + wave.amplitude * Math.sin(wave.frequency * (windowWidth * 0.75) + wave.phase);
-          const y3 = 50 + wave.amplitude * Math.sin(wave.frequency * windowWidth + wave.phase);
+          const y1 =
+            50 +
+            wave.amplitude *
+              Math.sin(wave.frequency * (windowWidth * 0.25) + wave.phase);
+          const y2 =
+            50 +
+            wave.amplitude *
+              Math.sin(wave.frequency * (windowWidth * 0.75) + wave.phase);
+          const y3 =
+            50 +
+            wave.amplitude *
+              Math.sin(wave.frequency * windowWidth + wave.phase);
 
-          const y0b = 50 + (wave.amplitude / 1.5) * Math.sin(wave.phase + Math.PI / 4);
-          const y1b = 50 + (wave.amplitude / 1.5) * Math.sin(wave.frequency * (windowWidth * 0.25) + wave.phase + Math.PI / 4);
-          const y2b = 50 + (wave.amplitude / 1.5) * Math.sin(wave.frequency * (windowWidth * 0.75) + wave.phase + Math.PI / 4);
-          const y3b = 50 + (wave.amplitude / 1.5) * Math.sin(wave.frequency * windowWidth + wave.phase + Math.PI / 4);
+          const y0b =
+            50 + (wave.amplitude / 1.5) * Math.sin(wave.phase + Math.PI / 4);
+          const y1b =
+            50 +
+            (wave.amplitude / 1.5) *
+              Math.sin(
+                wave.frequency * (windowWidth * 0.25) + wave.phase + Math.PI / 4
+              );
+          const y2b =
+            50 +
+            (wave.amplitude / 1.5) *
+              Math.sin(
+                wave.frequency * (windowWidth * 0.75) + wave.phase + Math.PI / 4
+              );
+          const y3b =
+            50 +
+            (wave.amplitude / 1.5) *
+              Math.sin(wave.frequency * windowWidth + wave.phase + Math.PI / 4);
 
           return (
             <motion.svg
@@ -165,7 +199,9 @@ const LoginPage = () => {
                   ease: "easeInOut",
                   delay: wave.id * 0.2,
                 }}
-                d={`M0,${y0} C${windowWidth * 0.25},${y1} ${windowWidth * 0.75},${y2} ${windowWidth},${y3}`}
+                d={`M0,${y0} C${windowWidth * 0.25},${y1} ${
+                  windowWidth * 0.75
+                },${y2} ${windowWidth},${y3}`}
                 fill="none"
                 stroke={wave.color}
                 strokeWidth={2}
@@ -179,7 +215,9 @@ const LoginPage = () => {
                   ease: "easeInOut",
                   delay: wave.id * 0.2 + 1.5,
                 }}
-                d={`M0,${y0b} C${windowWidth * 0.25},${y1b} ${windowWidth * 0.75},${y2b} ${windowWidth},${y3b}`}
+                d={`M0,${y0b} C${windowWidth * 0.25},${y1b} ${
+                  windowWidth * 0.75
+                },${y2b} ${windowWidth},${y3b}`}
                 fill="none"
                 stroke={wave.color}
                 strokeWidth={1.5}
@@ -189,7 +227,7 @@ const LoginPage = () => {
         })}
       </div>
 
-      {/* Login Form */}
+      {/* Login Box */}
       <div className="relative z-10 flex items-center justify-center min-h-screen px-4">
         <div className="bg-black border border-purple-600 text-white shadow-lg rounded-xl p-6 w-full max-w-md">
           <h2 className="text-2xl font-bold text-center mb-4">Login</h2>
@@ -213,14 +251,14 @@ const LoginPage = () => {
               type="email"
               placeholder="Enter your email"
               value={email}
-              onChange={e => setEmail(e.target.value)}
+              onChange={(e) => setEmail(e.target.value)}
               className="bg-gray-700 text-white p-2 rounded-md border border-gray-600 focus:outline-none"
             />
             <input
               type="password"
               placeholder="Enter your password"
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={(e) => setPassword(e.target.value)}
               className="bg-gray-700 text-white p-2 rounded-md border border-gray-600 focus:outline-none"
             />
 

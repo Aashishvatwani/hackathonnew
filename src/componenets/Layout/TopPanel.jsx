@@ -1,56 +1,92 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import Editor from "@monaco-editor/react";
 import { useQuestions } from "../../context/questionContext";
-import TestResultPopup from "./TestResultPopup"; // Import the popup component
+import TestResultPopup from "./TestResultPopup";
+import LanguageSelector from "./LanguageSelector";
+import ErrorPopup from "./ErrorPopup";
+import { runCode } from "../../services/codeRunner";
 
 const TopPanel = () => {
   const [showPopup, setShowPopup] = useState(false);
   const [summary, setSummary] = useState({ passed: 0, failed: 0 });
+  const [loading, setLoading] = useState(false);
+  const [justSubmitted, setJustSubmitted] = useState(false);
+  const [codeOutput, setCodeOutput] = useState("");
+  const [showErrorPopup, setShowErrorPopup] = useState(false);
+  const [errorOccurred, setErrorOccurred] = useState(false);
 
+  const { updateQuestionScore, language, checkTestCases } = useQuestions();
   const {
     selectedQuestion,
     testResult,
     currentCode,
+    setTestResults,
     setCurrentCodeHandler,
-    generateCppWithTests,
   } = useQuestions();
 
-  // const getTestSummaryForSelectedQuestion = () => {
-  //   if (!selectedQuestion || !testResult[String(selectedQuestion.id)]) {
-  //     return { passed: 0, failed: 0 };
-  //   }
+  const prevResultsRef = useRef(null);
 
-  //   const results = testResult[String(selectedQuestion.id)];
-  //   const passed = Object.values(results).filter((val) => val === true).length;
-  //   const failed = Object.values(results).filter((val) => val === false).length;
+  const handleSubmit = async () => {
+    setLoading(true);
+    setJustSubmitted(true);
+    setShowErrorPopup(false);
+    setShowPopup(false);
+    setCodeOutput("");
+    setErrorOccurred(false);
 
-  //   return { passed, failed };
-  // };
-
-  const handleSubmit = () => {
-    const { passed, failed } = getTestSummaryForSelectedQuestion();
-    setSummary({ passed, failed });
-    setShowPopup(true);
-  };
-
-  const getTestSummaryForSelectedQuestion = () => {
-    if (
-      !selectedQuestion ||
-      !testResult ||
-      !testResult[String(selectedQuestion.id)] ||
-      !Array.isArray(testResult[String(selectedQuestion.id)].results)
-    ) {
-      return { passed: 0, failed: 0 };
+    const inputfile = selectedQuestion.qinput;
+    const output = await runCode(currentCode, language, inputfile);
+    
+    if (!output) {
+      setCodeOutput("Error: Code execution failed.");
+      setShowErrorPopup(true);
+      setErrorOccurred(true);
+      setLoading(false);
+      setJustSubmitted(false);
+      return;
     }
-  
-    const { results } = testResult[String(selectedQuestion.id)];
-  
-    const passed = results.filter((r) => r.passed).length;
-    const failed = results.length - passed;
-  
-    return { passed, failed };
+
+    setCodeOutput(output);
+
+    const lowerOutput = output.toLowerCase();
+    if (
+      lowerOutput.includes("error") ||
+      lowerOutput.includes("exception") ||
+      lowerOutput.includes("undefined") ||
+      lowerOutput.includes("segmentation fault")
+    ) {
+      setShowErrorPopup(true);
+      setErrorOccurred(true);
+      setLoading(false);
+      setJustSubmitted(false);
+    } else {
+      setErrorOccurred(false);
+      prevResultsRef.current = testResult[selectedQuestion?.id] || null;
+      checkTestCases(output, selectedQuestion);
+    }
   };
-  
+
+  useEffect(() => {
+    if (
+      justSubmitted &&
+      !errorOccurred &&
+      selectedQuestion &&
+      testResult[selectedQuestion.id] &&
+      testResult[selectedQuestion.id] !== prevResultsRef.current
+    ) {
+      const results = testResult[selectedQuestion.id];
+      const passed = Object.values(results).filter((val) => val === true).length;
+      const failed = Object.values(results).filter((val) => val === false).length;
+      setSummary({ passed, failed });
+      setShowPopup(true);
+      setLoading(false);
+      setJustSubmitted(false);
+
+      const totalScore = passed * 5;
+      updateQuestionScore(selectedQuestion.id, totalScore);
+    }
+  }, [testResult, selectedQuestion, justSubmitted, errorOccurred]);
+
   return (
     <div
       style={{
@@ -70,19 +106,8 @@ const TopPanel = () => {
           gap: "10px",
         }}
       >
-        <label style={{ color: "white" }}>Language: CPP</label>
+        <LanguageSelector />
         <button
-          onClick={() => {
-            // if (
-            //   selectedQuestion.totalarray === 2 &&
-            //   selectedQuestion.totalint === 1
-            // )
-            generateCppWithTests(
-              currentCode,
-              selectedQuestion.tests,
-              selectedQuestion.codeTemplate
-            );
-          }}
           style={{
             padding: "5px 10px",
             borderRadius: "4px",
@@ -125,11 +150,24 @@ const TopPanel = () => {
         />
       </div>
 
+      {loading && (
+        <div style={{ color: "#fff", textAlign: "center", margin: "1rem" }}>
+          Checking your code...
+        </div>
+      )}
+
       {showPopup && (
         <TestResultPopup
           passed={summary.passed}
           failed={summary.failed}
           onClose={() => setShowPopup(false)}
+        />
+      )}
+
+      {showErrorPopup && (
+        <ErrorPopup
+          errorOutput={codeOutput}
+          onClose={() => setShowErrorPopup(false)}
         />
       )}
     </div>

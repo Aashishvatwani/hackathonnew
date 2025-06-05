@@ -2,7 +2,6 @@ import React from "react";
 import SplitPane from "react-split-pane";
 import LeftPanel from "./LeftPanel";
 import TopPanel from "./TopPanel";
-import BottomPanel from "./BottomPanel";
 import SecurityBlocker from "../../SecurityBlocker"; // Import SecurityBlocker
 
 const resizerStyle = {
@@ -11,13 +10,6 @@ const resizerStyle = {
   cursor: "col-resize",
   borderRadius: "2px",
   boxShadow: "0 0 2px rgba(255, 255, 255, 0.2)",
-};
-
-const horizontalResizerStyle = {
-  ...resizerStyle,
-  width: "100%",
-  height: "4px",
-  cursor: "row-resize",
 };
 
 const ResizableLayout = () => {
@@ -33,16 +25,7 @@ const ResizableLayout = () => {
           resizerStyle={resizerStyle}
         >
           <LeftPanel />
-          <SplitPane
-            split="horizontal"
-            minSize={100}
-            defaultSize={"60%"}
-            maxSize={"90%"}
-            resizerStyle={horizontalResizerStyle}
-          >
-            <TopPanel />
-            <BottomPanel />
-          </SplitPane>
+          <TopPanel />
         </SplitPane>
       </div>
     </>

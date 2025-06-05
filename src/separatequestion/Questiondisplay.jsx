@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
-import { questionsData } from "../questionsdata"; // Assuming your questionsData is imported from here
+import { questionsData } from "../questionsData";// Assuming your questionsData is imported from here
 import { useNavigate } from 'react-router-dom';
 import { v4 as uuidv4 } from 'uuid'; // Import uuid for generating unique IDs
 import { ref, set, getDatabase } from "firebase/database"; // Firebase Realtime Database methods
@@ -53,7 +53,7 @@ const SidebarSelectQuestion = () => {
         const questionRef = ref(db, `users/${currentUser.uid}/selectedQuestions/${question.uniqueId}`);
         
         // Save each selected question to the Realtime Database
-        set(questionRef, {
+        set(questionRef,   {
           id: question.id,
           title: question.title,
           difficulty: question.difficulty,
@@ -92,7 +92,7 @@ const SidebarSelectQuestion = () => {
           position: "relative",
         }}
       >
-        <h3 className="text-white text-lg font-bold mb-4">Selected Questions</h3>
+        <h3 className="text-white text-lg font-bold mb-4">Selected  </h3>
 
         {selectedQuestions.length > 0 ? (
           selectedQuestions.map((question) => (

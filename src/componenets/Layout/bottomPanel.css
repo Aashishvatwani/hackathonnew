@@ -1,119 +1,64 @@
 .bottom-panel {
-    background: #222831;
-    color: #EEEEEE;
-    padding: 16px;
-    border-radius: 10px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
+  background-color: #1e1e2f;
+  color: white;
+  padding: 16px;
+  height: 100%;
+  overflow-y: auto;
 }
 
 .test-case-selector {
-    display: flex;
-    align-items: center;
-    gap: 10px;
+  margin-bottom: 12px;
 }
 
 .test-case-buttons {
-    display: flex;
-    gap: 8px;
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .test-case-btn {
-    background: #393E46;
-    color: #EEEEEE;
-    border: none;
-    padding: 8px 14px;
-    border-radius: 6px;
-    cursor: pointer;
-    transition: background 0.3s;
-}
-
-.test-case-btn:hover {
-    background: #4A90E2;
+  padding: 6px 10px;
+  border: none;
+  border-radius: 4px;
+  background-color: #333;
+  color: white;
+  cursor: pointer;
 }
 
 .test-case-btn.active {
-    background: #4A90E2;
-    font-weight: bold;
+  background-color: #555;
 }
 
-.test-case-details {
-    background: #31363F;
-    padding: 12px;
-    border-radius: 8px;
+.test-case-btn.pass {
+  background-color: #28a745;
 }
 
-.detail-row {
-    display: flex;
-    gap: 8px;
-    margin-bottom: 8px;
+.test-case-btn.fail {
+  background-color: #dc3545;
 }
 
-.output-box {
-    background: #1E1E2F;
-    padding: 10px;
-    color: white;
-    border-radius: 6px;
-    overflow-y: auto;
+.test-case-details .detail-row {
+  margin-bottom: 12px;
 }
-.test-case-btn {
-    padding: 10px 20px;
-    margin: 6px 8px;
-    border: 2px solid transparent;
-    border-radius: 4px; /* subtle rounding */
-    cursor: pointer;
-    font-weight: 600;
-    width: 80px;          /* 👈 Makes it rectangular */
-    height: 40px;
-    background-color: #f1f1f1;
-    color: #333;
-    text-align: center;
-    transition: all 0.2s ease;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .test-case-btn.active {
-    border-color: #007bff;
-    background-color: #e9f2ff;
-  }
-  
-  .test-case-btn.pass {
-    background-color: #00da33;
-    color: #000000;
-  }
-  
-  .test-case-btn.fail {
-    background-color: #e57373; /* deeper red */
-    color: #fff;
-    border: 1px solid #c62828;
-  }
-  
-  .test-case-btn:hover {
-    opacity: 0.95;
-  }
-  .input-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    margin-left: 8px;
-  }
-  
-  .input-item {
-    display: flex;
-    gap: 4px;
-    color: #f0f0f0; /* Adjust based on theme */
-    font-size: 14px;
-  }
-  
-  .input-key {
-    font-weight: bold;
-  }
-  
-  .input-value {
-    white-space: nowrap;
-  }
-  
+
+.input-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.input-item {
+  background: #2c2c3c;
+  padding: 6px;
+  border-radius: 4px;
+}
+
+.error-display pre {
+  background: #3a1f1f;
+  color: #ff6b6b;
+  padding: 8px;
+  border-radius: 4px;
+  white-space: pre-wrap;
+  margin-top: 6px;
+}
